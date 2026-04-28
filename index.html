@@ -1,0 +1,443 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>OpenRouter minimal client — modèles gratuits uniquement</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    body { font-family: Arial, Helvetica, sans-serif; margin:18px; background:#f3f4f6; color:#111; }
+    .box { background:#fff; padding:14px; border:1px solid #ddd; max-width:820px; margin:0 auto; box-shadow:0 1px 3px rgba(0,0,0,0.04); }
+    label { display:block; margin-top:10px; font-weight:600; }
+    input[type="text"], input[type="password"], select, textarea { width:100%; box-sizing:border-box; padding:8px; margin-top:6px; border:1px solid #ccc; border-radius:3px; font-size:14px; }
+    textarea { resize:vertical; min-height:90px; max-height:320px; }
+    .row { display:flex; gap:8px; align-items:center; margin-top:10px; flex-wrap:wrap; }
+    button { padding:8px 12px; border:1px solid #888; background:#f7f7f7; cursor:pointer; border-radius:4px; }
+    button.primary { background:#2563eb; color:#fff; border-color:#1e4db7; }
+    .small { font-size:0.9em; color:#555; margin-top:6px; }
+    #output { background:#0b1220; color:#e6eef8; padding:12px; margin-top:10px; border-radius:4px; max-height:420px; overflow:auto; white-space:pre-wrap; word-wrap:break-word; overflow-x:hidden; }
+    .status { margin-top:8px; font-size:0.95em; color:#333; }
+    .controls { margin-top:12px; display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+    .note { font-size:0.85em; color:#666; margin-top:8px; }
+    .progress-wrap {
+      width: 100%;
+      height: 10px;
+      background: #e5e7eb;
+      border: 1px solid #cbd5e1;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 10px;
+      display: none;
+    }
+    .progress-bar {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, #60a5fa, #2563eb);
+      border-radius: 999px;
+      transition: width 0.15s linear;
+    }
+    .progress-text {
+      margin-top: 6px;
+      font-size: 0.85em;
+      color: #374151;
+      display: none;
+    }
+    @media (max-width:520px) {
+      .row { flex-direction:column; align-items:stretch; }
+    }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h3>Client OpenRouter minimal</h3>
+
+    <div class="small">Collez votre clé API ici (ne la partagez pas). Vous pouvez la sauvegarder localement pour réutilisation.</div>
+
+    <label for="apiKey">Clé API</label>
+    <input id="apiKey" type="password" placeholder="sk-...">
+
+    <div class="row">
+      <button id="saveKeyBtn">Sauvegarder la clé</button>
+      <button id="clearKeyBtn">Supprimer la clé sauvegardée</button>
+      <div style="margin-left:auto;">
+        <button id="loadKeyBtn">Charger clé sauvegardée</button>
+      </div>
+    </div>
+
+    <label for="modelSelect">Modèle gratuit</label>
+    <div class="row">
+      <select id="modelSelect">
+        <option value="openrouter/free">openrouter/free — routeur gratuit</option>
+        <option value="">-- Rafraîchir la liste pour charger les modèles gratuits --</option>
+      </select>
+      <button id="refreshModelsBtn">Rafraîchir modèles gratuits</button>
+    </div>
+
+    <label for="prompt">Prompt</label>
+    <textarea id="prompt" rows="6">Bonjour, peux-tu me résumer la Révolution française en 3 phrases ?</textarea>
+
+    <div class="controls">
+      <button id="sendBtn" class="primary">Envoyer</button>
+      <button id="clearOutputBtn">Effacer réponse</button>
+      <div class="status" id="status" aria-live="polite"></div>
+    </div>
+
+    <div class="progress-wrap" id="progressWrap" aria-hidden="true">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+    <div class="progress-text" id="progressText">Attente de la réponse…</div>
+
+    <h4>Réponse</h4>
+    <pre id="output">Aucune réponse pour l'instant.</pre>
+
+    <div class="note">
+      Remarques : le navigateur de l'iMac G3 peut ne pas supporter les versions TLS modernes ; si la requête échoue, utilisez un proxy moderne côté serveur. La clé est stockée localement dans votre navigateur si vous choisissez de la sauvegarder. La liste des modèles gratuits est filtrée à partir de l’API OpenRouter et peut changer au fil du temps.
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      var apiKeyInput = document.getElementById('apiKey');
+      var saveKeyBtn = document.getElementById('saveKeyBtn');
+      var loadKeyBtn = document.getElementById('loadKeyBtn');
+      var clearKeyBtn = document.getElementById('clearKeyBtn');
+      var modelSelect = document.getElementById('modelSelect');
+      var refreshModelsBtn = document.getElementById('refreshModelsBtn');
+      var promptEl = document.getElementById('prompt');
+      var sendBtn = document.getElementById('sendBtn');
+      var output = document.getElementById('output');
+      var status = document.getElementById('status');
+      var clearOutputBtn = document.getElementById('clearOutputBtn');
+      var progressWrap = document.getElementById('progressWrap');
+      var progressBar = document.getElementById('progressBar');
+      var progressText = document.getElementById('progressText');
+
+      var STORAGE_KEY = 'openrouter_api_key_v1';
+      var progressTimer = null;
+      var progressValue = 0;
+
+      function setStatus(msg) {
+        status.textContent = msg || '';
+      }
+
+      function showProgress() {
+        progressValue = 8;
+        progressWrap.style.display = 'block';
+        progressText.style.display = 'block';
+        progressBar.style.width = progressValue + '%';
+
+        if (progressTimer) clearInterval(progressTimer);
+        progressTimer = setInterval(function(){
+          if (progressValue < 90) {
+            progressValue += Math.max(1, Math.round((90 - progressValue) * 0.08));
+            if (progressValue > 90) progressValue = 90;
+            progressBar.style.width = progressValue + '%';
+          }
+        }, 180);
+      }
+
+      function finishProgress() {
+        if (progressTimer) {
+          clearInterval(progressTimer);
+          progressTimer = null;
+        }
+        progressValue = 100;
+        progressBar.style.width = '100%';
+
+        setTimeout(function(){
+          progressWrap.style.display = 'none';
+          progressText.style.display = 'none';
+          progressBar.style.width = '0%';
+        }, 350);
+      }
+
+      function hideProgressImmediately() {
+        if (progressTimer) {
+          clearInterval(progressTimer);
+          progressTimer = null;
+        }
+        progressWrap.style.display = 'none';
+        progressText.style.display = 'none';
+        progressBar.style.width = '0%';
+        progressValue = 0;
+      }
+
+      function loadSavedKeyToField() {
+        try {
+          var saved = localStorage.getItem(STORAGE_KEY);
+          if (saved) {
+            apiKeyInput.value = saved;
+            setStatus('Clé chargée depuis le stockage local.');
+            return true;
+          } else {
+            setStatus('');
+          }
+        } catch (e) {
+          console.warn('localStorage inaccessible', e);
+        }
+        return false;
+      }
+
+      function saveKey() {
+        var k = apiKeyInput.value.trim();
+        if (!k) { alert('Aucune clé à sauvegarder.'); return; }
+        try {
+          localStorage.setItem(STORAGE_KEY, k);
+          setStatus('Clé sauvegardée localement.');
+        } catch (e) {
+          alert('Impossible de sauvegarder la clé : ' + e);
+        }
+      }
+
+      function loadSavedKeyFromStorage() {
+        try {
+          var saved = localStorage.getItem(STORAGE_KEY);
+          if (saved) {
+            apiKeyInput.value = saved;
+            setStatus('Clé chargée depuis le stockage local.');
+          } else {
+            setStatus('Aucune clé sauvegardée.');
+            alert('Aucune clé sauvegardée trouvée.');
+          }
+        } catch (e) {
+          alert('Impossible d\'accéder au stockage local : ' + e);
+        }
+      }
+
+      function clearSavedKey() {
+        try {
+          localStorage.removeItem(STORAGE_KEY);
+          setStatus('Clé supprimée du stockage local.');
+        } catch (e) {
+          alert('Impossible de supprimer la clé : ' + e);
+        }
+      }
+
+      function addOption(select, value, text, selected) {
+        var opt = document.createElement('option');
+        opt.value = value;
+        opt.textContent = text;
+        if (selected) opt.selected = true;
+        select.appendChild(opt);
+      }
+
+      function isZeroPrice(value) {
+        if (value === null || value === undefined || value === '') return false;
+        var n = parseFloat(value);
+        return !isNaN(n) && n === 0;
+      }
+
+      function isFreeModel(model) {
+        if (!model || typeof model !== 'object') return false;
+
+        if (typeof model.id === 'string' && model.id.indexOf(':free') !== -1) return true;
+
+        var pricing = model.pricing;
+        if (!pricing) return false;
+
+        var keys = [
+          'prompt',
+          'completion',
+          'request',
+          'image',
+          'web_search',
+          'internal_reasoning',
+          'input_cache_read',
+          'input_cache_write'
+        ];
+
+        var sawAnyPrice = false;
+        for (var i = 0; i < keys.length; i++) {
+          var key = keys[i];
+          if (pricing[key] !== undefined) {
+            sawAnyPrice = true;
+            if (!isZeroPrice(pricing[key])) return false;
+          }
+        }
+
+        return sawAnyPrice;
+      }
+
+      function modelLabel(model) {
+        var name = model.name || model.id || 'Modèle sans nom';
+        var id = model.id || '';
+        if (id && id !== name) return name + ' — ' + id;
+        return name;
+      }
+
+      function compareModels(a, b) {
+        var na = (a.name || a.id || '').toLowerCase();
+        var nb = (b.name || b.id || '').toLowerCase();
+        if (na < nb) return -1;
+        if (na > nb) return 1;
+        return 0;
+      }
+
+      function populateFreeModels(models, keepValue) {
+        modelSelect.innerHTML = '';
+        addOption(modelSelect, 'openrouter/free', 'openrouter/free — routeur gratuit', keepValue === 'openrouter/free');
+
+        if (!models || !models.length) {
+          addOption(modelSelect, '', '-- Aucun modèle gratuit trouvé dans la réponse --', keepValue === '');
+          return;
+        }
+
+        for (var i = 0; i < models.length; i++) {
+          var m = models[i];
+          if (!m || !m.id) continue;
+          addOption(modelSelect, m.id, modelLabel(m), keepValue === m.id);
+        }
+
+        if (keepValue) {
+          var found = false;
+          for (var j = 0; j < modelSelect.options.length; j++) {
+            if (modelSelect.options[j].value === keepValue) {
+              found = true;
+              break;
+            }
+          }
+          if (!found) modelSelect.value = 'openrouter/free';
+        } else {
+          modelSelect.value = 'openrouter/free';
+        }
+      }
+
+      function refreshFreeModels() {
+        var key = apiKeyInput.value.trim();
+        if (!key) {
+          alert('Collez votre clé API avant de rafraîchir la liste des modèles.');
+          return;
+        }
+
+        setStatus('Rafraîchissement des modèles gratuits en cours...');
+        var previousValue = modelSelect.value || 'openrouter/free';
+
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', 'https://openrouter.ai/api/v1/models?output_modalities=text', true);
+        xhr.setRequestHeader('Authorization', 'Bearer ' + key);
+
+        xhr.onreadystatechange = function(){
+          if (xhr.readyState !== 4) return;
+
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              var resp = JSON.parse(xhr.responseText);
+              var data = resp && resp.data && resp.data.length ? resp.data : [];
+              var freeModels = [];
+
+              for (var i = 0; i < data.length; i++) {
+                if (isFreeModel(data[i])) freeModels.push(data[i]);
+              }
+
+              freeModels.sort(compareModels);
+              populateFreeModels(freeModels, previousValue);
+              setStatus('Liste des modèles gratuits mise à jour.');
+            } catch (e) {
+              setStatus('Erreur de parsing de la réponse modèles.');
+              output.textContent = 'Réponse brute:\n' + xhr.responseText;
+            }
+          } else {
+            setStatus('Erreur lors du rafraîchissement (' + xhr.status + ').');
+            output.textContent = 'Erreur HTTP ' + xhr.status + '\n' + xhr.responseText;
+          }
+        };
+
+        try {
+          xhr.send();
+        } catch (err) {
+          setStatus('Échec envoi requête modèles : ' + err);
+        }
+      }
+
+      saveKeyBtn.addEventListener('click', saveKey);
+      loadKeyBtn.addEventListener('click', loadSavedKeyFromStorage);
+      clearKeyBtn.addEventListener('click', clearSavedKey);
+      refreshModelsBtn.addEventListener('click', refreshFreeModels);
+
+      sendBtn.addEventListener('click', function(){
+        var key = apiKeyInput.value.trim();
+        if (!key) { alert('Collez votre clé API dans le champ Clé API.'); return; }
+
+        var model = modelSelect.value || 'openrouter/free';
+        var prompt = promptEl.value || '';
+
+        setStatus('Envoi en cours...');
+        output.textContent = '';
+        showProgress();
+
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', 'https://openrouter.ai/api/v1/chat/completions', true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.setRequestHeader('Authorization', 'Bearer ' + key);
+
+        xhr.onreadystatechange = function(){
+          if (xhr.readyState !== 4) return;
+
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              var resp = JSON.parse(xhr.responseText);
+              var text = '';
+
+              if (resp && resp.choices && resp.choices.length) {
+                for (var i = 0; i < resp.choices.length; i++) {
+                  var ch = resp.choices[i];
+                  if (ch.message && ch.message.content) {
+                    text += ch.message.content;
+                  } else if (ch.text) {
+                    text += ch.text;
+                  } else {
+                    text += JSON.stringify(ch);
+                  }
+                  if (i < resp.choices.length - 1) text += "\n\n";
+                }
+              } else if (resp && resp.output && resp.output[0] && resp.output[0].content) {
+                text = resp.output[0].content;
+              } else {
+                text = JSON.stringify(resp, null, 2);
+              }
+
+              output.textContent = text;
+              setStatus('Réponse reçue.');
+              finishProgress();
+            } catch (e) {
+              output.textContent = 'Erreur de parsing JSON: ' + e + '\n\n' + xhr.responseText;
+              setStatus('Erreur de parsing');
+              finishProgress();
+            }
+          } else {
+            output.textContent = 'Erreur HTTP ' + xhr.status + '\n' + xhr.responseText;
+            setStatus('Erreur HTTP');
+            finishProgress();
+          }
+        };
+
+        var body = {
+          model: model,
+          messages: [{ role: 'user', content: prompt }]
+        };
+
+        try {
+          xhr.send(JSON.stringify(body));
+        } catch (err) {
+          output.textContent = 'Échec envoi: ' + err;
+          setStatus('Erreur envoi');
+          hideProgressImmediately();
+        }
+      });
+
+      clearOutputBtn.addEventListener('click', function(){
+        output.textContent = '';
+        setStatus('');
+      });
+
+      var loaded = loadSavedKeyToField();
+      if (loaded) {
+        refreshFreeModels();
+      }
+
+      apiKeyInput.addEventListener('input', function(){
+        setStatus('');
+      });
+    })();
+  </script>
+</body>
+</html>
