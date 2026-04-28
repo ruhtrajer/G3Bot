@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="static/logo.png" alt="G3Bot logo" width="128">
+</p>
+
 # G3Bot
 
 A lightweight OpenRouter chat client designed for vintage Macs — tested on an iMac G3 (1999) with Netscape Communicator 4.x under Mac OS 8.6.

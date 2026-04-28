@@ -12,7 +12,7 @@ import uuid
 import threading
 
 import requests as http_requests
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, send_from_directory
 from markupsafe import Markup, escape
 
 # ---------------------------------------------------------------------------
@@ -264,6 +264,11 @@ def _process_chat(req_id: str, model_id: str, prompt: str):
 # Flask app
 # ---------------------------------------------------------------------------
 app = Flask(__name__)
+
+
+@app.route("/favicon.ico")
+def favicon():
+    return send_from_directory("static", "favicon.ico", mimetype="image/x-icon")
 
 
 @app.template_filter("nl2br")
