@@ -1,0 +1,81 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+  "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<title>G3Bot - Modeles</title>
+</head>
+
+<body bgcolor="#DDDDDD" text="#000000" link="#0000CC" vlink="#660099"
+      topmargin="2" leftmargin="2" marginheight="2" marginwidth="2">
+
+<center>
+<table border="0" cellspacing="0" cellpadding="0" width="100%">
+<tr><td bgcolor="#FFFFFF">
+<table border="0" cellspacing="1" cellpadding="0" width="100%">
+<tr><td bgcolor="#888888">
+<table border="0" cellspacing="0" cellpadding="0" width="100%">
+<tr><td bgcolor="#EEEEEE">
+
+<!-- TITLE BAR -->
+<table border="0" cellspacing="0" cellpadding="2" width="100%" bgcolor="#CCCCCC">
+<tr>
+  <td align="center">
+    <font face="Charcoal, Geneva, Chicago, Arial, sans-serif" size="2">
+      <b>&#9674; G3Bot &mdash; {{ models|length }} modele(s) gratuit(s)</b>
+    </font>
+  </td>
+</tr>
+<tr><td bgcolor="#BBBBBB" height="1"></td></tr>
+</table>
+
+<!-- CONTENT -->
+<table border="0" cellspacing="0" cellpadding="4" width="100%">
+<tr><td>
+
+<table border="0" cellspacing="0" cellpadding="1">
+<tr>
+  <td><form method="GET" action="/"><input type="submit" value="&laquo; Retour"></form></td>
+  <td>&nbsp;</td>
+  <td><form method="POST" action="/refresh"><input type="submit" value="Rafraichir"></form></td>
+</tr>
+</table>
+
+{% if models %}
+<table border="1" cellspacing="0" cellpadding="2" width="100%" bgcolor="#FFFFFF">
+<tr bgcolor="#CCCCCC">
+  <td><font face="Geneva, Arial, sans-serif" size="1"><b>Compagnie</b></font></td>
+  <td><font face="Geneva, Arial, sans-serif" size="1"><b>Modele</b></font></td>
+  <td><font face="Geneva, Arial, sans-serif" size="1"><b>Ctx</b></font></td>
+  <td><font face="Geneva, Arial, sans-serif" size="1"><b>Description</b></font></td>
+</tr>
+{% for m in models %}
+<tr bgcolor="{% if loop.index is odd %}#F8F8F8{% else %}#FFFFFF{% endif %}" valign="top">
+  <td nowrap><font face="Geneva, Arial, sans-serif" size="1">{{ m.company }}</font></td>
+  <td><font face="Geneva, Arial, sans-serif" size="1">{{ m.name }}</font></td>
+  <td align="center" nowrap><font face="Geneva, Arial, sans-serif" size="1">{{ m.context }}</font></td>
+  <td><font face="Geneva, Arial, sans-serif" size="1">{{ m.description[:150] }}{% if m.description|length > 150 %}...{% endif %}</font></td>
+</tr>
+{% endfor %}
+</table>
+{% else %}
+<br>
+<font face="Geneva, Arial, sans-serif" size="2" color="#990000">
+  Aucun modele disponible. Verifiez la cle API ou rafraichissez.
+</font>
+{% endif %}
+
+<br>
+<form method="GET" action="/"><input type="submit" value="&laquo; Retour a G3Bot"></form>
+
+</td></tr>
+</table>
+
+</td></tr></table>
+</td></tr></table>
+</td></tr></table>
+
+</center>
+
+</body>
+</html>

@@ -1,0 +1,8 @@
+services:
+  g3bot:
+    build: .
+    ports:
+      - "3615:5000"
+    environment:
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+    restart: unless-stopped
