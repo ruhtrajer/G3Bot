@@ -189,6 +189,7 @@ def get_models(force_refresh: bool = False) -> list[dict]:
 _requests_lock = threading.Lock()
 _pending_requests: dict = {}
 _REQUEST_TTL = 600  # cleanup after 10 minutes
+_conversation_history: list[dict] = []  # Protected by _requests_lock, max 50 messages
 
 
 def _cleanup_old_requests():
@@ -200,7 +201,7 @@ def _cleanup_old_requests():
             del _pending_requests[k]
 
 
-def _process_chat(req_id: str, model_id: str, prompt: str):
+def _process_chat(req_id: str, model_id: str, prompt: str, history: list[dict]):
     """Background thread: call OpenRouter and store result."""
     result = {"response_text": "", "error_text": "", "status_text": ""}
     try:
@@ -212,7 +213,7 @@ def _process_chat(req_id: str, model_id: str, prompt: str):
             },
             json={
                 "model": model_id,
-                "messages": [{"role": "user", "content": prompt}],
+                "messages": history,
             },
             timeout=120,
         )
@@ -220,6 +221,11 @@ def _process_chat(req_id: str, model_id: str, prompt: str):
         result["error_text"] = f"Erreur reseau : {exc}"
         result["status_text"] = "Echec de la requete."
         with _requests_lock:
+            # Remove user message added for this request if it remains the last entry
+            if (_conversation_history
+                and _conversation_history[-1].get("role") == "user"
+                and _conversation_history[-1].get("content") == prompt):
+                _conversation_history.pop()
             _pending_requests[req_id]["result"] = result
             _pending_requests[req_id]["status"] = "done"
         return
@@ -228,6 +234,11 @@ def _process_chat(req_id: str, model_id: str, prompt: str):
         result["error_text"] = f"Erreur HTTP {resp.status_code} : {resp.text[:500]}"
         result["status_text"] = f"Erreur HTTP {resp.status_code}."
         with _requests_lock:
+            # Remove user message added for this request if it remains the last entry
+            if (_conversation_history
+                and _conversation_history[-1].get("role") == "user"
+                and _conversation_history[-1].get("content") == prompt):
+                _conversation_history.pop()
             _pending_requests[req_id]["result"] = result
             _pending_requests[req_id]["status"] = "done"
         return
@@ -292,6 +303,8 @@ def nl2br_filter(value):
 @app.route("/", methods=["GET"])
 def index():
     models = get_models()
+    with _requests_lock:
+        history = list(_conversation_history)
     return render_template(
         "index.html",
         models=models,
@@ -304,12 +317,17 @@ def index():
             if models
             else "Aucun modele charge (verifiez la cle API)."
         ),
+        history=history,
     )
 
 
 @app.route("/clear")
 def clear():
+    with _requests_lock:
+        _conversation_history.clear()
     models = get_models()
+    with _requests_lock:
+        history = list(_conversation_history)
     return render_template(
         "index.html",
         models=models,
@@ -318,6 +336,7 @@ def clear():
         response_text="",
         error_text="",
         status_text="",
+        history=history,
     )
 
 
@@ -336,6 +355,7 @@ def chat():
             response_text="",
             error_text="Cle API OpenRouter non configuree sur le serveur.",
             status_text="Erreur de configuration.",
+            history=[],
         )
 
     if not model_id:
@@ -347,11 +367,20 @@ def chat():
             response_text="",
             error_text="Veuillez choisir un modele.",
             status_text="",
+            history=[],
         )
 
     # Start background processing
     req_id = uuid.uuid4().hex[:8]
     with _requests_lock:
+        # Add user message to conversation history
+        _conversation_history.append({"role": "user", "content": prompt})
+        # Enforce 50 message limit
+        while len(_conversation_history) > 50:
+            del _conversation_history[0]
+        # Copy current history to pass to background thread (includes new user message)
+        current_history = list(_conversation_history)
+        # Create pending request entry
         _pending_requests[req_id] = {
             "status": "pending",
             "result": None,
@@ -362,7 +391,7 @@ def chat():
         }
 
     thread = threading.Thread(
-        target=_process_chat, args=(req_id, model_id, prompt), daemon=True
+        target=_process_chat, args=(req_id, model_id, prompt, current_history), daemon=True
     )
     thread.start()
 
@@ -391,15 +420,26 @@ def wait(req_id):
         prompt = entry["prompt"]
         del _pending_requests[req_id]
 
+    # Add assistant message to history if response was successful
+    if result.get("response_text"):
+        with _requests_lock:
+            _conversation_history.append({"role": "assistant", "content": result["response_text"]})
+            # Enforce 50 message limit
+            while len(_conversation_history) > 50:
+                del _conversation_history[0]
+
     models = get_models()
+    with _requests_lock:
+        history = list(_conversation_history)
     return render_template(
         "index.html",
         models=models,
         selected_model=model_id,
-        prompt_text=prompt,
+        prompt_text="",
         response_text=result.get("response_text", ""),
         error_text=result.get("error_text", ""),
         status_text=result.get("status_text", ""),
+        history=history,
     )
 
 
