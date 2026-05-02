@@ -7,54 +7,93 @@
 <link rel="icon" href="/favicon.ico" type="image/x-icon">
 </head>
 
-<body bgcolor="#DDDDDD" text="#000000" link="#0000CC" vlink="#660099"
-      topmargin="2" leftmargin="2" marginheight="2" marginwidth="2">
+<body bgcolor="#C0C0C0" text="#000000" link="#0000CC" vlink="#660099"
+      topmargin="0" leftmargin="0" marginheight="0" marginwidth="0">
 
 <center>
-<table border="0" cellspacing="0" cellpadding="0" width="100%">
-<tr><td bgcolor="#FFFFFF">
-<table border="0" cellspacing="1" cellpadding="0" width="100%">
-<tr><td bgcolor="#888888">
-<table border="0" cellspacing="0" cellpadding="0" width="100%">
+<br>
+
+<!-- MAIN WINDOW -->
+<table border="0" cellspacing="0" cellpadding="0">
+
+<!-- Window shadow -->
+<tr><td bgcolor="#808080">
+<table border="0" cellspacing="0" cellpadding="0">
+<tr><td bgcolor="#000000">
+<table border="0" cellspacing="0" cellpadding="0">
+<tr><td>
+
+<!-- Window frame -->
+<table border="0" cellspacing="1" cellpadding="0" bgcolor="#666666">
 <tr><td bgcolor="#EEEEEE">
 
 <!-- TITLE BAR -->
-<table border="0" cellspacing="0" cellpadding="2" width="100%" bgcolor="#CCCCCC">
+<table border="0" cellspacing="0" cellpadding="0" width="100%">
 <tr>
-  <td align="center">
-    <font face="Charcoal, Geneva, Chicago, Arial, sans-serif" size="2">
-      <b>&#9674; G3Bot</b>
-    </font>
+  <td bgcolor="#CCCCCC" height="18">
+    <table border="0" cellspacing="0" cellpadding="0" width="100%">
+    <tr>
+      <td width="12">&nbsp;</td>
+      <td>
+        <font face="Charcoal, Geneva, Chicago, Arial, sans-serif" size="2" color="#000000">
+          <b>G3Bot</b>
+        </font>
+      </td>
+      <td width="12" align="right">
+        <font face="Chicago, Geneva, Arial, sans-serif" size="2" color="#000000"><b>&#215;</b></font>
+      </td>
+    </tr>
+    </table>
   </td>
 </tr>
 <tr><td bgcolor="#BBBBBB" height="1"></td></tr>
 </table>
 
-<!-- MAIN CONTENT -->
-<table border="0" cellspacing="0" cellpadding="4" width="100%">
+<!-- CONTENT AREA -->
+<table border="0" cellspacing="0" cellpadding="6" width="100%">
 <tr><td>
 
 {% if error_text %}
-<table border="0" cellspacing="0" cellpadding="3" width="100%" bgcolor="#FFCCCC">
+<!-- ERROR PANEL -->
+<table border="0" cellspacing="0" cellpadding="0" width="100%">
+<tr><td bgcolor="#FFFFFF">
+<table border="0" cellspacing="1" cellpadding="0" width="100%">
+<tr><td bgcolor="#CC0000">
+<table border="0" cellspacing="0" cellpadding="4" width="100%">
 <tr>
-  <td bgcolor="#FF9999" width="3"></td>
-  <td><font face="Geneva, Arial, sans-serif" size="1" color="#990000"><b>Erreur :</b> {{ error_text }}</font></td>
+  <td bgcolor="#FFCCCC">
+    <font face="Geneva, Chicago, Arial, sans-serif" size="2" color="#990000">
+      <b>Erreur :</b> {{ error_text }}
+    </font>
+  </td>
 </tr>
 </table>
+</td></tr>
+</table>
+</td></tr>
+</table>
+<br>
 {% endif %}
 
 {% if status_text %}
-<font face="Geneva, Arial, sans-serif" size="1" color="#555555">{{ status_text }}</font>
+<font face="Geneva, Chicago, Arial, sans-serif" size="1" color="#555555">{{ status_text }}</font>
 <br>
 {% endif %}
 
 <!-- CHAT FORM -->
 <form method="POST" action="/chat">
 
-<table border="0" cellspacing="0" cellpadding="1" width="100%">
+<!-- MODEL SELECTOR PANEL -->
+<table border="0" cellspacing="0" cellpadding="0" width="100%">
+<tr><td bgcolor="#FFFFFF">
+<table border="0" cellspacing="1" cellpadding="0" width="100%">
+<tr><td bgcolor="#999999">
+<table border="0" cellspacing="0" cellpadding="3" width="100%">
 <tr>
-  <td><font face="Geneva, Arial, sans-serif" size="2"><b>Modele :</b></font></td>
-  <td width="100%">
+  <td bgcolor="#DDDDDD" width="80">
+    <font face="Charcoal, Geneva, Chicago, Arial, sans-serif" size="2"><b>Modele :</b></font>
+  </td>
+  <td bgcolor="#DDDDDD">
     <select name="model">
       <option value="">-- Choisir --</option>
       {% for m in models %}
@@ -64,57 +103,130 @@
   </td>
 </tr>
 </table>
-
-<font face="Geneva, Arial, sans-serif" size="2"><b>Prompt :</b></font><br>
-<textarea name="prompt" rows="3" cols="95" wrap="soft">{{ prompt_text }}</textarea>
+</td></tr>
+</table>
+</td></tr>
+</table>
 <br>
 
-<table border="0" cellspacing="0" cellpadding="1">
-<tr>
-  <td><input type="submit" value=" Envoyer "></td>
-</tr>
+<!-- PROMPT LABEL -->
+<font face="Charcoal, Geneva, Chicago, Arial, sans-serif" size="2"><b>Prompt :</b></font>
+<br>
+<br>
+
+<!-- PROMPT TERMINAL FIELD -->
+<table border="0" cellspacing="0" cellpadding="0" width="100%">
+<tr><td bgcolor="#666666">
+<table border="0" cellspacing="1" cellpadding="0" width="100%">
+<tr><td bgcolor="#111133">
+<table border="0" cellspacing="0" cellpadding="0" width="100%">
+<tr><td>
+<textarea name="prompt" rows="5" cols="90" wrap="soft"
+          style="width:100%;background-color:#111133;color:#55EE55;font-family:Monaco,Courier,monospace;font-size:12px;border:none;"
+          >{{ prompt_text }}</textarea>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</td></tr>
+</table>
+<br>
+
+<!-- SEND BUTTON -->
+<table border="0" cellspacing="0" cellpadding="0">
+<tr><td bgcolor="#FFFFFF">
+<table border="0" cellspacing="1" cellpadding="0">
+<tr><td bgcolor="#999999">
+<input type="submit" value=" Envoyer ">
+</td></tr>
+</table>
+</td></tr>
 </table>
 
 </form>
 
+<br>
+
 <!-- ACTION BUTTONS -->
-<table border="0" cellspacing="0" cellpadding="1">
+<table border="0" cellspacing="2" cellpadding="0">
 <tr>
-  <td><form method="GET" action="/clear"><input type="submit" value=" Effacer "></form></td>
-  <td><form method="POST" action="/refresh"><input type="submit" value="Rafraichir modeles"></form></td>
-  <td><form method="GET" action="/models"><input type="submit" value="Details modeles"></form></td>
+  <td>
+    <table border="0" cellspacing="0" cellpadding="0">
+    <tr><td bgcolor="#FFFFFF">
+    <table border="0" cellspacing="1" cellpadding="0">
+    <tr><td bgcolor="#999999">
+    <form method="GET" action="/"><input type="submit" value=" Effacer "></form>
+    </td></tr>
+    </table>
+    </td></tr>
+    </table>
+  </td>
+  <td>
+    <table border="0" cellspacing="0" cellpadding="0">
+    <tr><td bgcolor="#FFFFFF">
+    <table border="0" cellspacing="1" cellpadding="0">
+    <tr><td bgcolor="#999999">
+    <form method="POST" action="/refresh"><input type="submit" value="Rafraichir modeles"></form>
+    </td></tr>
+    </table>
+    </td></tr>
+    </table>
+  </td>
+  <td>
+    <table border="0" cellspacing="0" cellpadding="0">
+    <tr><td bgcolor="#FFFFFF">
+    <table border="0" cellspacing="1" cellpadding="0">
+    <tr><td bgcolor="#999999">
+    <form method="GET" action="/models"><input type="submit" value="Details modeles"></form>
+    </td></tr>
+    </table>
+    </td></tr>
+    </table>
+  </td>
 </tr>
 </table>
 
-<!-- RESPONSE -->
-<font face="Geneva, Arial, sans-serif" size="2"><b>Reponse :</b></font>
+<br>
+
+<!-- RESPONSE PANEL -->
+<table border="0" cellspacing="0" cellpadding="0" width="100%">
+<tr><td>
+<font face="Charcoal, Geneva, Chicago, Arial, sans-serif" size="2"><b>Reponse :</b></font>
+</td></tr>
+</table>
 <br>
 <table border="0" cellspacing="0" cellpadding="0" width="100%">
 <tr><td bgcolor="#666666">
 <table border="0" cellspacing="1" cellpadding="0" width="100%">
 <tr><td bgcolor="#111133">
-  <table border="0" cellspacing="0" cellpadding="4" width="100%">
-  <tr><td>
-    <font face="Monaco, Courier, monospace" size="2" color="#55EE55">
-      {% if response_text %}{{ response_text|nl2br }}{% else %}Aucune reponse pour l'instant.{% endif %}
-    </font>
-  </td></tr>
-  </table>
+<table border="0" cellspacing="0" cellpadding="4" width="100%">
+<tr><td>
+<font face="Monaco, Courier, monospace" size="2" color="#55EE55">
+  {% if response_text %}{{ response_text|nl2br }}{% else %}Aucune reponse pour l'instant.{% endif %}
+</font>
+</td></tr>
+</table>
 </td></tr>
 </table>
 </td></tr>
 </table>
 
-<font face="Geneva, Arial, sans-serif" size="1" color="#999999">
+<br>
+
+<font face="Geneva, Chicago, Arial, sans-serif" size="1" color="#888888">
 G3Bot &mdash; NAS Docker &mdash; Cle API sur le serveur
 </font>
 
 </td></tr>
 </table>
 
-</td></tr></table>
-</td></tr></table>
-</td></tr></table>
+</td></tr>
+</table>
+
+</td></tr>
+</table>
+</td></tr>
+</table>
 
 </center>
 
