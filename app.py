@@ -20,7 +20,7 @@ from markupsafe import Markup, escape
 # ---------------------------------------------------------------------------
 OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
 CACHE_TTL = int(os.environ.get("G3BOT_CACHE_TTL", "3600"))
-PORT = int(os.environ.get("G3BOT_PORT", "5000"))
+PORT = int(os.environ.get("G3BOT_PORT", "3615"))
 OPENROUTER_MODELS_URL = "https://openrouter.ai/api/v1/models"
 OPENROUTER_CHAT_URL = "https://openrouter.ai/api/v1/chat/completions"
 
