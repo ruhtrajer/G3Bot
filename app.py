@@ -295,8 +295,8 @@ def index():
     return render_template(
         "index.html",
         models=models,
-        selected_model="",
-        prompt_text="Bonjour, peux-tu me resumer la Revolution francaise en 3 phrases ?",
+        selected_model="openrouter/free",
+        prompt_text="Parle-moi de l'iMac G3.",
         response_text="",
         error_text="",
         status_text=(
