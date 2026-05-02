@@ -183,10 +183,10 @@
 
 <br>
 
-<!-- RESPONSE PANEL -->
+<!-- CONVERSATION PANEL -->
 <table border="0" cellspacing="0" cellpadding="0" width="100%">
 <tr><td>
-<font face="Charcoal, Geneva, Chicago, Arial, sans-serif" size="2"><b>Reponse :</b></font>
+<font face="Charcoal, Geneva, Chicago, Arial, sans-serif" size="2"><b>Conversation :</b></font>
 </td></tr>
 </table>
 <br>
@@ -195,11 +195,21 @@
 <table border="0" cellspacing="1" cellpadding="0" width="100%">
 <tr><td bgcolor="#111133">
 <table border="0" cellspacing="0" cellpadding="4" width="100%">
-<tr><td>
-<font face="Monaco, Courier, monospace" size="2" color="#55EE55">
-  {% if response_text %}{{ response_text|nl2br }}{% else %}Aucune reponse pour l'instant.{% endif %}
-</font>
-</td></tr>
+{% if history %}
+  {% for msg in history %}
+  <tr><td>
+    <font face="Monaco, Courier, monospace" size="2" color="{% if msg.role == 'user' %}#55EE55{% else %}#55FFFF{% endif %}">
+      {% if msg.role == 'user' %}Vous :{% else %}Bot :{% endif %} {{ msg.content|nl2br }}
+    </font>
+  </td></tr>
+  {% endfor %}
+{% else %}
+  <tr><td>
+    <font face="Monaco, Courier, monospace" size="2" color="#55EE55">
+      Aucun message pour l'instant.
+    </font>
+  </td></tr>
+{% endif %}
 </table>
 </td></tr>
 </table>
