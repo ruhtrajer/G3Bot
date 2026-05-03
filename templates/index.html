@@ -92,7 +92,7 @@
     <select name="model">
       <option value="">-- Choisir --</option>
       {% for m in models %}
-      <option value="{{ m.id }}"{% if m.id == selected_model %} selected{% endif %}>{{ m.company }} &mdash; {{ m.name }}</option>
+      <option value="{{ m.id }}"{% if m.id == selected_model %} selected{% endif %}>{{ m.company }} -- {{ m.name }}</option>
       {% endfor %}
     </select>
   </td>
@@ -151,7 +151,6 @@
 <table border="0" cellspacing="0" cellpadding="0" width="100%">
 <tr><td>
 <textarea name="prompt" rows="5" cols="90" wrap="soft"
-          style="width:100%;background-color:#111133;color:#55EE55;font-family:Monaco,Courier,monospace;font-size:12px;border:none;"
           >{{ prompt_text }}</textarea>
 </td></tr>
 </table>
@@ -218,7 +217,7 @@
 <br>
 
 <font face="Geneva, Chicago, Arial, sans-serif" size="1" color="#888888">
-G3Bot &mdash; NAS Docker &mdash; Cle API sur le serveur
+G3Bot -- NAS Docker -- Cle API sur le serveur
 </font>
 
 </td></tr>

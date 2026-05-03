@@ -260,7 +260,7 @@ def _process_chat(req_id: str, model_id: str, prompt: str, history: list[dict]):
     model_display = model_id
     for m in models:
         if m["id"] == model_id:
-            model_display = f'{m["company"]} \u2014 {m["name"]}'
+            model_display = f'{m["company"]} -- {m["name"]}'
             break
 
     result["response_text"] = response_text
