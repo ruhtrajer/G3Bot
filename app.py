@@ -277,6 +277,15 @@ def _process_chat(req_id: str, model_id: str, prompt: str, history: list[dict]):
 app = Flask(__name__)
 
 
+@app.after_request
+def force_latin1(response):
+    """Force ISO-8859-1 charset on HTML responses for Netscape 4 / IE 4.5 compatibility."""
+    if response.mimetype == "text/html":
+        response.charset = "iso-8859-1"
+        response.headers["Content-Type"] = "text/html; charset=iso-8859-1"
+    return response
+
+
 @app.route("/favicon.ico")
 def favicon():
     return send_from_directory("static", "favicon.ico", mimetype="image/x-icon")
