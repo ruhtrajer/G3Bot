@@ -104,6 +104,40 @@
 </table>
 <br>
 
+<!-- CONVERSATION PANEL -->
+<table border="0" cellspacing="0" cellpadding="0" width="100%">
+<tr><td>
+<font face="Charcoal, Geneva, Chicago, Arial, sans-serif" size="2"><b>Conversation :</b></font>
+</td></tr>
+</table>
+<br>
+<table border="0" cellspacing="0" cellpadding="0" width="100%">
+<tr><td bgcolor="#666666">
+<table border="0" cellspacing="1" cellpadding="0" width="100%">
+<tr><td bgcolor="#111133">
+<table border="0" cellspacing="0" cellpadding="4" width="100%">
+{% if history %}
+  {% for msg in history %}
+  <tr><td>
+    <font face="Monaco, Courier, monospace" size="2" color="{% if msg.role == 'user' %}#55EE55{% else %}#55FFFF{% endif %}">
+      {% if msg.role == 'user' %}Vous :{% else %}Bot :{% endif %} {{ msg.content|nl2br }}
+    </font>
+  </td></tr>
+  {% endfor %}
+{% else %}
+  <tr><td>
+    <font face="Monaco, Courier, monospace" size="2" color="#55EE55">
+      Aucun message pour l'instant.
+    </font>
+  </td></tr>
+{% endif %}
+</table>
+</td></tr>
+</table>
+</td></tr>
+</table>
+
+<br>
 <!-- PROMPT LABEL -->
 <font face="Charcoal, Geneva, Chicago, Arial, sans-serif" size="2"><b>Prompt :</b></font>
 <br>
@@ -150,7 +184,7 @@
     <tr><td bgcolor="#FFFFFF">
     <table border="0" cellspacing="1" cellpadding="0">
     <tr><td bgcolor="#999999">
-    <form method="GET" action="/"><input type="submit" value=" Effacer "></form>
+    <form method="GET" action="/clear"><input type="submit" value=" Nouvelle conversation "></form>
     </td></tr>
     </table>
     </td></tr>
@@ -179,41 +213,6 @@
     </table>
   </td>
 </tr>
-</table>
-
-<br>
-
-<!-- CONVERSATION PANEL -->
-<table border="0" cellspacing="0" cellpadding="0" width="100%">
-<tr><td>
-<font face="Charcoal, Geneva, Chicago, Arial, sans-serif" size="2"><b>Conversation :</b></font>
-</td></tr>
-</table>
-<br>
-<table border="0" cellspacing="0" cellpadding="0" width="100%">
-<tr><td bgcolor="#666666">
-<table border="0" cellspacing="1" cellpadding="0" width="100%">
-<tr><td bgcolor="#111133">
-<table border="0" cellspacing="0" cellpadding="4" width="100%">
-{% if history %}
-  {% for msg in history %}
-  <tr><td>
-    <font face="Monaco, Courier, monospace" size="2" color="{% if msg.role == 'user' %}#55EE55{% else %}#55FFFF{% endif %}">
-      {% if msg.role == 'user' %}Vous :{% else %}Bot :{% endif %} {{ msg.content|nl2br }}
-    </font>
-  </td></tr>
-  {% endfor %}
-{% else %}
-  <tr><td>
-    <font face="Monaco, Courier, monospace" size="2" color="#55EE55">
-      Aucun message pour l'instant.
-    </font>
-  </td></tr>
-{% endif %}
-</table>
-</td></tr>
-</table>
-</td></tr>
 </table>
 
 <br>
