@@ -51,6 +51,20 @@ ALLOWED_MODELS = (
 )
 
 # ---------------------------------------------------------------------------
+# Response color palette (Néon Rétro — high visibility on #111133 background)
+# ---------------------------------------------------------------------------
+RESPONSE_COLORS = [
+    "#55FFFF",  # Cyan (existing default)
+    "#FFFF55",  # Jaune
+    "#FF55FF",  # Magenta
+    "#55FF55",  # Vert lime
+    "#FF9955",  # Orange
+    "#AA55FF",  # Violet
+]
+
+_color_index = 0  # Global counter for color rotation
+
+# ---------------------------------------------------------------------------
 # Nice display names for known providers
 # ---------------------------------------------------------------------------
 COMPANY_DISPLAY = {
@@ -323,8 +337,10 @@ def index():
 
 @app.route("/clear")
 def clear():
+    global _color_index
     with _requests_lock:
         _conversation_history.clear()
+        _color_index = 0
     models = get_models()
     with _requests_lock:
         history = list(_conversation_history)
@@ -423,7 +439,11 @@ def wait(req_id):
     # Add assistant message to history if response was successful
     if result.get("response_text"):
         with _requests_lock:
-            _conversation_history.append({"role": "assistant", "content": result["response_text"]})
+            color = RESPONSE_COLORS[_color_index % len(RESPONSE_COLORS)]
+            _color_index += 1
+            _conversation_history.append(
+                {"role": "assistant", "content": result["response_text"], "color": color}
+            )
             # Enforce 50 message limit
             while len(_conversation_history) > 50:
                 del _conversation_history[0]
