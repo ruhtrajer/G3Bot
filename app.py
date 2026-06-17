@@ -260,7 +260,7 @@ def _process_chat(req_id: str, model_id: str, prompt: str, history: list[dict]):
     model_display = model_id
     for m in models:
         if m["id"] == model_id:
-            model_display = f'{m["company"]} \u2014 {m["name"]}'
+            model_display = f'{m["company"]} -- {m["name"]}'
             break
 
     result["response_text"] = response_text
@@ -275,6 +275,15 @@ def _process_chat(req_id: str, model_id: str, prompt: str, history: list[dict]):
 # Flask app
 # ---------------------------------------------------------------------------
 app = Flask(__name__)
+
+
+@app.after_request
+def force_latin1(response):
+    """Force ISO-8859-1 charset on HTML responses for Netscape 4 / IE 4.5 compatibility."""
+    if response.mimetype == "text/html":
+        response.charset = "iso-8859-1"
+        response.headers["Content-Type"] = "text/html; charset=iso-8859-1"
+    return response
 
 
 @app.route("/favicon.ico")
